@@ -1,0 +1,141 @@
+-- E-Commerce Order Analysis SQL Queries
+--  Sample Business Question Answered
+
+/* --------------------------------------------------------
+   1. Total Revenue
+---------------------------------------------------------*/
+SELECT SUM(quantity * price_per_unit) AS total_revenue
+FROM order_items;
+
+
+/* --------------------------------------------------------
+   2. Monthly Revenue Trend
+---------------------------------------------------------*/
+SELECT 
+    DATE_TRUNC('month', o.order_date) AS month,
+    SUM(oi.quantity * oi.price_per_unit) AS revenue
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY month
+ORDER BY month;
+
+
+/* --------------------------------------------------------
+   3. Top 10 Best Selling Products
+---------------------------------------------------------*/
+SELECT 
+    p.product_name,
+    SUM(oi.quantity) AS total_sold
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.product_name
+ORDER BY total_sold DESC
+LIMIT 10;
+
+
+/* --------------------------------------------------------
+   4. Customer Lifetime Value (LTV)
+---------------------------------------------------------*/
+SELECT 
+    c.customer_name,
+    SUM(oi.quantity * oi.price_per_unit) AS lifetime_value
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY c.customer_name
+ORDER BY lifetime_value DESC;
+
+
+/* --------------------------------------------------------
+   5. Order Status Distribution
+---------------------------------------------------------*/
+SELECT 
+    status,
+    COUNT(*) AS total_orders
+FROM orders
+GROUP BY status;
+
+
+/* --------------------------------------------------------
+   6. Average Order Value (AOV)
+---------------------------------------------------------*/
+SELECT AVG(order_total) AS avg_order_value
+FROM (
+    SELECT 
+        oi.order_id,
+        SUM(oi.quantity * oi.price_per_unit) AS order_total
+    FROM order_items oi
+    GROUP BY oi.order_id
+) AS sub;
+
+
+/* --------------------------------------------------------
+   7. Most Valuable Customer (MVC)
+---------------------------------------------------------*/
+SELECT 
+    c.customer_name,
+    SUM(oi.quantity * oi.price_per_unit) AS revenue
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY c.customer_name
+ORDER BY revenue DESC
+LIMIT 1;
+
+
+/* --------------------------------------------------------
+   8. Best Selling Category
+---------------------------------------------------------*/
+SELECT 
+    p.category,
+    SUM(oi.quantity) AS units_sold
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.category
+ORDER BY units_sold DESC;
+
+
+/* --------------------------------------------------------
+   9. Total Orders Per City
+---------------------------------------------------------*/
+SELECT 
+    c.city,
+    COUNT(o.order_id) AS total_orders
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.city
+ORDER BY total_orders DESC;
+
+
+/* --------------------------------------------------------
+   10. Number of Items Per Order
+---------------------------------------------------------*/
+SELECT 
+    order_id,
+    SUM(quantity) AS total_items
+FROM order_items
+GROUP BY order_id
+ORDER BY total_items DESC;
+
+
+/* --------------------------------------------------------
+   11. Repeat Customers
+---------------------------------------------------------*/
+SELECT 
+    customer_id,
+    COUNT(order_id) AS total_orders
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(order_id) > 1;
+
+
+/* --------------------------------------------------------
+   12. Revenue by Category
+---------------------------------------------------------*/
+SELECT 
+    p.category,
+    SUM(oi.quantity * oi.price_per_unit) AS revenue
+FROM products p
+JOIN order_items oi ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY revenue DESC;
